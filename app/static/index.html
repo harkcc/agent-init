@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent 智能指挥台</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>Agent Commander <span style="font-size: 12px; font-weight: 400; color: var(--text-muted)">v2.0</span>
+            </h1>
+            <div class="status">
+                <div class="status-dot"></div>
+                核心引擎已就绪
+            </div>
+        </div>
+
+        <div class="messages" id="messages">
+            <div class="message bot">
+                👋 你好！我是你的全能助理。你可以直接对我提问，或者输入 <strong>@</strong> 来强制指派特定的专家为你服务。
+            </div>
+        </div>
+
+        <div class="input-area">
+            <!-- 提及弹窗 -->
+            <div class="mention-popup" id="mention-popup">
+                <!-- 动态生成 -->
+            </div>
+
+            <input type="text" id="chat-input" placeholder="输入消息... 试试键入 @" autocomplete="off">
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+
+</html>
