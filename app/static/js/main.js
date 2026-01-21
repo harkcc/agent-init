@@ -4,8 +4,7 @@ const messagesCont = document.getElementById('messages');
 let items = [];
 
 // 配置：后端 API 地址
-// 注意：在本地开发时通常是 http://localhost:8000
-const API_BASE = ""; 
+const API_BASE = "";
 
 let activeIndex = 0;
 let isPopupVisible = false;
@@ -21,9 +20,9 @@ async function fetchAgents() {
         console.error("无法加载 Agent 列表", e);
         // Fallback data
         renderPopup([
-            {name: "lingxing_expert", description: "领星 ERP 财务分析专家", icon: "📊"},
-            {name: "search_agent", description: "实时联网信息检索专家", icon: "🔍"},
-            {name: "database_agent", description: "MongoDB 数据库操作专家", icon: "💾"}
+            { name: "lingxing_expert", description: "领星 ERP 财务分析专家", icon: "📊" },
+            { name: "search_agent", description: "实时联网信息检索专家", "icon": "🔍" },
+            { name: "database_agent", description: "MongoDB 数据库操作专家", "icon": "💾" }
         ]);
     }
 }
@@ -38,7 +37,7 @@ function renderPopup(agents) {
             </div>
         </div>
     `).join('');
-    
+
     items = document.querySelectorAll('.mention-item');
     items.forEach((item, idx) => {
         item.addEventListener('click', () => {
@@ -98,7 +97,7 @@ function hidePopup() {
 function updateActive(index) {
     if (index < 0) index = items.length - 1;
     if (index >= items.length) index = 0;
-    
+
     items.forEach(it => it.classList.remove('active'));
     items[index].classList.add('active');
     activeIndex = index;
@@ -115,17 +114,11 @@ function selectAgent(name) {
 async function sendMessage(text) {
     // 1. 显示用户消息
     appendMessage(text, 'user');
-    
+
     // 2. 显示Loading状态
     const loadingId = appendMessage("Thinking...", 'bot', true);
 
     try {
-        // 3. 构建请求
-        // 注意：这是发给 Google ADK FastAPI 的标准请求格式
-        // 实际路径可能根据你的 routes 配置有所不同，这里假设一个通用的 chat 接口
-        // 如果我们用的是 Google 官方的 API 代理，通常是 /agents/root_agent/sessions/{session_id}:run
-        // 为了简化，我们假设后端有一个简单的 /chat/run 接口封装
-        
         const response = await fetch(`${API_BASE}/chat/run`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -137,15 +130,14 @@ async function sendMessage(text) {
         });
 
         const data = await response.json();
-        
+
         // 4. 更新Bot回复
         const botMsgDiv = document.getElementById(loadingId);
         botMsgDiv.innerText = ""; // 清除 loading
-        
-        // 简单处理：如果返回的是文本流，这里应该做流式处理
+
         // 这里假设返回的是最终结果
         botMsgDiv.innerText = data.output || "No response received";
-        
+
     } catch (e) {
         console.error(e);
         const botMsgDiv = document.getElementById(loadingId);
@@ -156,21 +148,20 @@ async function sendMessage(text) {
 function appendMessage(text, sender, isTemp = false) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `message ${sender}`;
-    
+
     if (sender === 'user') {
         const highlightedText = text.replace(/(@\w+)/g, '<span class="agent-tag">$1</span>');
         msgDiv.innerHTML = highlightedText;
     } else {
         msgDiv.innerText = text;
     }
-    
-    // 生成唯一ID以便后续更新
+
     const id = 'msg-' + Date.now();
     msgDiv.id = id;
-    
+
     messagesCont.appendChild(msgDiv);
     messagesCont.scrollTop = messagesCont.scrollHeight;
-    
+
     return id;
 }
 

@@ -27,8 +27,16 @@ from app.app_utils.typing import Feedback
 
 setup_telemetry()
 _, project_id = google.auth.default()
-logging_client = google_cloud_logging.Client()
-logger = logging_client.logger(__name__)
+try:
+    if project_id:
+        logging_client = google_cloud_logging.Client(project=project_id)
+    else:
+        logging_client = google_cloud_logging.Client()
+    logger = logging_client.logger(__name__)
+except Exception as e:
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.warning(f"Failed to initialize Google Cloud Logging: {e}")
 allow_origins = (
     os.getenv("ALLOW_ORIGINS", "").split(",") if os.getenv("ALLOW_ORIGINS") else None
 )
@@ -47,7 +55,6 @@ app: FastAPI = get_fast_api_app(
     web=True,
     artifact_service_uri=artifact_service_uri,
     allow_origins=allow_origins,
-    session_service_uri=session_service_uri,
     session_service_uri=session_service_uri,
     otel_to_cloud=True,
 )
@@ -74,8 +81,8 @@ def get_available_agents():
     ]
 
 # --- 新增：简化的运行接口（为了给前端 fetch 用）---
-from google.adk.runner import Runner
-from google.adk.sessions import InMemorySessionService
+from google.adk.runners import Runner
+from google.adk.sessions.in_memory_session_service import InMemorySessionService
 from google.genai import types as genai_types
 from app.agent import root_agent
 

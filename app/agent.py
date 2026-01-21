@@ -28,11 +28,12 @@ import sys
 import os
 import google.auth
 
-from app.lingxing_agent.tools.metrics import analyze_store
+from app.lingxing_agent.manager import lingxing_manager
 
 _, project_id = google.auth.default()
-os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
-os.environ["GOOGLE_CLOUD_LOCATION"] = "us-central1"
+if project_id:
+    os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
+    
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
 
@@ -68,65 +69,6 @@ def get_current_time(query: str) -> str:
     now = datetime.datetime.now(tz)
     return f"The current time for query {query} is {now.strftime('%Y-%m-%d %H:%M:%S %Z%z')}"
 
-
-# root_agent = Agent(
-#     name="root_agent",
-#     model=Gemini(
-#         model="gemini-3-Flash",
-#         retry_options=types.HttpRetryOptions(attempts=3),
-#     ),
-#     instruction="""You are a helpful AI assistant designed to provide accurate and useful information.
-#     You have access to LingXing ERP data to analyze store performance. 
-#     You can retrieve cost structure, profit margins, logistics plans, and inventory turnover for specific stores and months.
-#     When asked about store performance, use the `analyze_store` tool.""",
-#     tools=[get_weather, get_current_time, analyze_store],
-# )
-# root_agent = Agent(
-#     name="root_agent",
-#     model=Gemini(
-#         model="gemini-2.5-flash", # 建议使用 Pro 模型处理复杂逻辑
-#         retry_options=types.HttpRetryOptions(attempts=3),
-#     ),
-#     # 👇 这里就是修改 Instruction 的地方
-#     instruction="""你是一个专业的领星 ERP 数据分析助手。
-    
-#     ## 职责：
-#     1. 当用户要求分析店铺表现、成本结构或利润时，使用 `analyze_store` 工具。
-#     2. 在调用 `analyze_store` 之前，你必须确保已经获得了：店名 (store_name)、年份 (year)、月份 (month)。
-    
-#     ## 约束：
-#     - 如果用户信息缺失（如没说月份），请礼貌地询问：“请问您想查看哪个月份的数据？”。
-#     - 拿到数据后，请结合数据给出 2-3 条改进建议。
-#     """,
-#     tools=[get_weather, get_current_time, analyze_store],
-# )
-
-lingxing_agent = Agent(
-    name="lingxing_expert",
-    model=Gemini(
-        model="gemini-2.0-flash",
-        generate_content_config=types.GenerateContentConfig(
-            safety_settings=[
-                types.SafetySetting(category=c, threshold="BLOCK_NONE")
-                for c in [
-                    "HATE_SPEECH",
-                    "DANGEROUS_CONTENT",
-                    "HARASSMENT",
-                    "SEXUALLY_EXPLICIT",
-                ]
-            ]
-        ),
-    ),
-    planner=PlanReActPlanner(),
-    instruction="""你是一个领星 ERP 数据分析专家。
-    **注意：你必须全程使用中文进行回复。**
-    你的思考过程、计划（Planning）和最终答案都必须使用简体中文。
-    你负责查询店铺利润、成本结构和库存周转。
-    请确保在调用工具前核实店名、年、月。
-    分析完成后，请给出专业的财务建议。""",
-    output_key="lingxing_report", # 结果存在这里
-    tools=[analyze_store], # 领星专用的工具放在这里
-)
 
 # 2. 定义独立的搜索 Agent
 search_agent = Agent(
@@ -197,7 +139,7 @@ database_agent = Agent(
 root_agent = Agent(
     name="root_agent",
     model=Gemini(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         generate_content_config=types.GenerateContentConfig(
             safety_settings=[
                 types.SafetySetting(category=c, threshold="BLOCK_NONE")
@@ -215,18 +157,19 @@ root_agent = Agent(
     **核心规则：你必须全程使用中文进行交流。** 你的思考逻辑、步骤计划和最终回复都必须是简体中文。
     在执行任务或委派任务之前，请简要说明你的计划，让用户了解你的思考过程。
     
-    1. 如果用户的问题涉及领星 ERP、店铺利润、成本分析、财务数据或库存周转，请委派给 'lingxing_expert'。
+    1. 如果用户的问题涉及领星 ERP、店铺利润、成本分析、财务数据、库存周转或具体产品(SKU/MSKU)的采购、发货状态，销售信息请委派给 'lingxing_manager'。
     2. 如果用户想了解实时新闻、查找互联网信息或进行背景调研，请委派给 'search_agent'。
-    3. 如果用户查询具体的产品基础信息，特别是提供了 MSKU（如 '21SZWP-01NS-10color-FBA-JPE'）或 ASIN（如 'B08RRVYJLJ'）格式的标识符时，请直接委派给 'database_agent' 进行精确查询。
-    4. 如果用户问数据库底层数据、集合列表或具体的 MongoDB 查询，请委派给 'database_agent'。
+    3. 如果用户查询具体的产品基础信息（如数据库中的静态信息），特别是提供了 MSKU（如 '21SZWP-01NS-10color-FBA-JPE'）或 ASIN（如 'B08RRVYJLJ'）格式的标识符时，请直接委派给 'database_agent' 进行精确查询。
+    4. 如果用户问数据库底层数据、集合列表或具体的 MongoDB 查询，或者MSKU/SKU的基础信息信息请委派给 'database_agent'。
     5. 如果用户问天气，使用 get_weather。
     6. 如果用户问时间，使用 get_current_time。
     7. 其他日常闲聊，由你直接回答。
     **注意：你必须全程使用中文回答。** """,
     
     tools=[get_weather, get_current_time], # 移除了 google_search
-    sub_agents=[lingxing_agent, search_agent, database_agent], # 挂载了 search_agent 和 database_agent
+    sub_agents=[lingxing_manager, search_agent, database_agent], # 挂载了 lingxing_manager 和 database_agent
 )
+
 
 
 app = App(root_agent=root_agent, name="app")

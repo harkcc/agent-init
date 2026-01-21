@@ -17,7 +17,7 @@
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg);
-    background-image: 
+    background-image:
         radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0, transparent 50%),
         radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0, transparent 50%);
     color: var(--text-main);
@@ -52,10 +52,34 @@ body {
     align-items: center;
 }
 
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.switch-btn {
+    text-decoration: none;
+    font-size: 13px;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    transition: all 0.2s;
+}
+
+.switch-btn:hover {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--primary-light);
+    border-color: var(--primary);
+}
+
 .chat-header h1 {
     font-family: 'Outfit', sans-serif;
     font-size: 20px;
     background: linear-gradient(to right, #818cf8, #c084fc);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -94,7 +118,8 @@ body {
     font-size: 15px;
     line-height: 1.5;
     animation: slideIn 0.3s ease-out;
-    white-space: pre-wrap; /* Preserve whitespace and newlines */
+    white-space: pre-wrap;
+    /* Preserve whitespace and newlines */
 }
 
 .message.bot {
@@ -160,7 +185,8 @@ body {
     transition: background 0.2s;
 }
 
-.mention-item:hover, .mention-item.active {
+.mention-item:hover,
+.mention-item.active {
     background: rgba(99, 102, 241, 0.2);
 }
 
@@ -199,17 +225,42 @@ body {
 }
 
 @keyframes pulse {
-    0% { transform: scale(0.95); opacity: 0.8; }
-    50% { transform: scale(1.05); opacity: 1; }
-    100% { transform: scale(0.95); opacity: 0.8; }
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
 }
 
 @keyframes slideIn {
-    from { transform: translateY(10px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+        transform: translateY(10px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 @keyframes popUp {
-    from { transform: translateY(10px) scale(0.95); opacity: 0; }
-    to { transform: translateY(0) scale(1); opacity: 1; }
+    from {
+        transform: translateY(10px) scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
 }

@@ -240,3 +240,92 @@ class LingXingClient:
         # GET request with query params
         query = f"filter_zero_storage=0&offset=0&length=20&start_date={start_date}&end_date={end_date}&sort_type=desc&sid_list={sid}&req_time_sequence=%2Fapi%2Finventory_report%2FlocalQuantityDetailList$$6"
         return self._get(f"{url}?{query}")
+
+    def request_web_purchasedate(self, sku: str) -> Dict[str, Any]:
+        """获取采购信息:非加工 (对应 request_web_purchasedate)"""
+        # URL: https://erp.lingxing.com/api/purchase/orderListsV2
+        json_data = {
+            'offset': 0, 'length': 200, 
+            'expect_arrive_time_status': '',
+            'alibaba_amount_is_diff': '',
+            'sort_field': 'create_time', 'sort_type': 'desc',
+            'status_shipped': [], 'status': '', 'pay_status': [],
+            'search_field_time': 'pay_time', 'search_field': 'sku', 'search_value': sku,
+            'wid': [], 'sid': [], 'purchaser_id': [], 'cg_uids': [],
+            'sub_status_list': [], 'logistics_status_list_1688': [],
+            'gtag_ids': '', 'permission_uid_list': [], 'senior_search_list': [],
+            'is_urgent': '', 'change_order_status': '', 'notice_receipt': '',
+            'is_bad': '', 'is_tax': '', 'is_logistics': '',
+            'is_associate_return': 0, 'is_associate_exchange': 0,
+            'req_time_sequence': '/api/purchase/orderListsV2$$7',
+        }
+        return self._post(f"{self.BASE_URL}/api/purchase/orderListsV2", json_data)
+
+    def request_oversea_plan(self, sku: str) -> Dict[str, Any]:
+        """获取发货/海外仓计划 (对应 request_web_multi_sku_shiptitme)"""
+        # URL: https://erp.lingxing.com/api/oversea_plan/planGroupList
+        json_data = {
+            'receive_warehouse_type': '3',
+            'status': '',
+            'create_uids': [], 'audit_uids': [],
+            'is_relate_purchase': '', 'is_relate_process': '',
+            'spo_status': [], 'is_relate_overseas': '',
+            'is_relate_packing_task_sn': '', 'lock_status': '',
+            'ship_mode': '', 'is_urgent': '',
+            'search_field_time': 'gmt_create', 'search_field': 'sku', 'search_value': sku,
+            'seniorSearchList': [],
+            'offset': 0, 'length': 200,
+            'req_time_sequence': '/api/oversea_plan/planGroupList$$5',
+        }
+        return self._post(f"{self.BASE_URL}/api/oversea_plan/planGroupList", json_data)
+
+    def request_deliver_page(self, msku: str) -> Dict[str, Any]:
+        """获取发货单查询 (保留原有的, 对应 request_deliver_page)"""
+        json_data = {
+             'offset': 0, 'length': 20, 'sort_field': 'create_time', 'sort_type': 'desc',
+             'search_field': 'msku', 'search_value': msku,
+             'req_time_sequence': '/api/fba/shipment_plan/lists$$15'
+        }
+        return self._post(f"{self.BASE_URL}/api/fba/shipment_plan/lists", json_data)
+
+    def get_product_performance(self, start_date: str, end_date: str, msku: str = None) -> Dict[str, Any]:
+        """获取产品表现数据 (销量、销售额、广告等)"""
+        json_data = {
+            'sort_field': 'volume',
+            'sort_type': 'desc',
+            'offset': 0,
+            'length': 200, # Limit for single query
+            'search_field': 'msku',
+            'search_value': [msku] if msku else [],
+            'mids': '',
+            'sids': '',
+            'date_type': 'purchase',
+            'start_date': start_date,
+            'end_date': end_date,
+            'principal_uids': [],
+            'bids': [],
+            'cids': [],
+            'extend_search': [],
+            'summary_field': 'msku',
+            'currency_code': '',
+            'product_states': [],
+            'is_resale': '',
+            'order_types': [],
+            'promotions': [],
+            'developers': [],
+            'delivery_methods': [],
+            'is_recently_enum': True,
+            'ad_cost_type': '',
+            'attr_value_ids': [],
+            'turn_on_summary': 1,
+            'summary_field_level1': '',
+            'summary_field_level2': '',
+            'gtag_ids': [],
+            'sub_summary_type': 'msku',
+            'regions': [],
+            'date_range_type': 0,
+            'req_time_sequence': '/bd/productPerformance/asinLists$$19',
+        }
+        return self._post(f"{self.GW_URL}/bd/productPerformance/asinLists", json_data)
+
+
